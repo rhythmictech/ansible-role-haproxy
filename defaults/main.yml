@@ -1,0 +1,11 @@
+---
+
+haproxy_maxconns: 500
+
+haproxy_packages:
+  - haproxy
+
+haproxy_listen_port: 80
+
+haproxy_enable_strict_tls: False
+haproxy_ssl_certs: []

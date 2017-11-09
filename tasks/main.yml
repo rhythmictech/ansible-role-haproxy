@@ -1,0 +1,71 @@
+---
+
+- name: create haproxy group
+  group:
+    name: haproxy
+    state: 'present'
+  tags: ['haproxy']
+
+- name: create haproxy user
+  user:
+    name: haproxy
+    state: 'present'
+    group: haproxy
+  tags: ['haproxy']
+
+- name: ensure haproxy socket dir exists
+  file: dest=/var/lib/haproxy owner=haproxy group=haproxy mode=0750 state=directory
+  tags: ['haproxy']
+
+- name: ensure the haproxy packages are installed
+  yum: name="{{ item }}" state=present
+  with_items: "{{ haproxy_packages | default([]) }}"
+  tags: ['haproxy']
+
+- name: ensure ssl certificates are in place
+  copy:
+    content: "{{ item.cert }}\n{{ item.key }}\n{{ item.chain }}"
+    dest: "/etc/pki/tls/private/{{ item.name }}.pem"
+    owner: root
+    group: root
+    mode: 0640
+  with_items: "{{ haproxy_ssl_certs }}"
+  tags: ['haproxy', 'certificates']
+
+- name: ensure the haproxy config is in place
+  template:
+    src: etc.haproxy.haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: 0640
+  notify: restart haproxy
+  tags: ['haproxy']
+
+- name: ensure user agent block files are in place
+  template:
+    src: etc.haproxy.ua-abuser.lst.j2
+    dest: /etc/haproxy/{{ item.name }}-ua-abuser.lst
+    owner: root
+    group: root
+    mode: 0640
+  notify: reload haproxy
+  when: "{{ item.block_user_agent|default(false) }}"
+  with_items: "{{ haproxy_frontends }}"
+  tags: ['haproxy']
+
+- name: ensure ip address block files are in place
+  template:
+    src: etc.haproxy.ip-abuser.lst.j2
+    dest: /etc/haproxy/{{ item.name }}-ip-abuser.lst
+    owner: root
+    group: root
+    mode: 0640
+  notify: reload haproxy
+  when: "{{ item.block_ip_address|default(false) }}"
+  with_items: "{{ haproxy_frontends }}"
+  tags: ['haproxy']
+
+- name: ensure haproxy is running and enabled
+  service: name=haproxy state=started enabled=true
+  tags: ['haproxy']

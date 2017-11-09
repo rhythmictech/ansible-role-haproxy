@@ -1,0 +1,130 @@
+# {{ ansible_managed }}
+
+global
+    log         127.0.0.1 local2
+
+    chroot                          /var/lib/haproxy
+    pidfile                         /var/run/haproxy.pid
+    maxconn                         {{ haproxy_maxconns }}
+    user                            haproxy
+    group                           haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats                           socket /var/lib/haproxy/stats
+
+{% if haproxy_enable_strict_tls|default(False) %}
+
+    ssl-default-bind-ciphers        ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
+    ssl-default-bind-options        no-sslv3 no-tlsv10 no-tlsv11
+{% endif %}
+
+    tune.ssl.default-dh-param       4096
+
+    # this should try to let sessions cache around a day for PFS purposes
+    tune.ssl.cachesize              20000
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+# HAPROXY FRONTENDS
+
+{% for frontend in haproxy_frontends %}
+# Front End: {{ frontend.name }}
+frontend {{ frontend.name }}
+  bind                       {{ frontend.bind }}
+{% if frontend.mode|default(false) %}
+  mode                       {{ frontend.mode }}
+{% endif %}
+# Timeouts
+{% if frontend.timeout_client_fin|default(false) %}
+  timeout client-fin         {{ frontend.timeout_client_fin }}
+{% endif %}
+{% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
+  tcp-request inspect-delay 1s
+{% endif %}
+{% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
+  tcp-request content reject if abuser
+{% endif %}
+{% if frontend.reqadd|default(false) %}
+# Headers
+{% for reqadd in frontend.reqadd %}
+  reqadd                     {{ reqadd }}
+{% endfor %}
+{% endif %}
+
+{% if frontend.acls|default(false) %}
+  # ACLs
+{% for acl in frontend.acls %}
+  acl                         {{ acl.name }} {{ acl.policy }}
+{% endfor %}
+{% endif %}
+{% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
+# Blocking related ACLs
+{% if frontend.block_user_agent|default(false) %}
+  acl abuser hdr_reg(User-Agent) -i -f /etc/haproxy/{{ frontend.name }}-ua-abuser.lst
+{% endif %}
+{% if frontend.block_ip_address|default(false) %}
+  acl abuser src -f /etc/haproxy/{{ frontend.name }}-ip-abuser.lst
+{% endif %}
+{% endif %}
+
+{% if frontend.use_backend|default(false) %}
+  # Backend Routing
+{% for use_backend in frontend.use_backend %}
+  use_backend                 {{ use_backend }}
+{% endfor %}
+{% endif %}
+
+  # Default backend
+  default_backend             {{ frontend.default_backend }}
+
+{% for directive in frontend.other_directives|default([]) %}
+  {{ directive }}
+{% endfor %}
+{% endfor %}
+
+{% for backend in haproxy_backends %}
+backend {{ backend.name }}
+{% if backend.redirect_ssl|default(false) %}
+  redirect                    scheme https if !{ ssl_fc }
+{% endif %}
+  balance                     {{ backend.balance|default('roundrobin') }}
+{% if backend.cookie|default(false) %}
+  cookie                      {{ backend.cookie }}
+{% endif %}
+{% if backend.timeout_tunnel|default(false) %}
+  timeout tunnel              {{ backend.timeout_tunnel }}
+{% endif %}
+{% if backend.timeout_server|default(false) %}
+  timeout server              {{ backend.timeout_server }}
+{% endif %}
+{% if backend.groups|default(false) %}
+  # Servers
+{% for group in backend.groups %}
+{% for server in group.servers %}
+{% if group.check_cookie|default(false) %}
+  server                      {{ server|hash('sha1') }} {{ server }}:{{ group.port }} check cookie {{ server|hash('sha1') }}
+{% else %}
+  server                      {{ server|hash('sha1') }} {{ server }}:{{ group.port }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
