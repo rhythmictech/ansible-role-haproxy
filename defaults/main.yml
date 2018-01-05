@@ -2,6 +2,9 @@
 
 haproxy_maxconns: 500
 
+haproxy_timeout_client: "1m"
+haproxy_timeout_server: "1m"
+
 haproxy_packages:
   - haproxy
 

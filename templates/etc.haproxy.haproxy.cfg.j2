@@ -36,22 +36,23 @@ defaults
     timeout http-request    10s
     timeout queue           1m
     timeout connect         10s
-    timeout client          1m
-    timeout server          1m
+    timeout client          {{ haproxy_timeout_client }}
+    timeout server          {{ haproxy_timeout_server }}
     timeout http-keep-alive 10s
     timeout check           10s
     maxconn                 3000
 
 # HAPROXY FRONTENDS
-
 {% for frontend in haproxy_frontends %}
+
 # Front End: {{ frontend.name }}
 frontend {{ frontend.name }}
   bind                       {{ frontend.bind }}
 {% if frontend.mode|default(false) %}
   mode                       {{ frontend.mode }}
 {% endif %}
-# Timeouts
+
+  # Timeouts
 {% if frontend.timeout_client_fin|default(false) %}
   timeout client-fin         {{ frontend.timeout_client_fin }}
 {% endif %}
@@ -62,11 +63,12 @@ frontend {{ frontend.name }}
   tcp-request content reject if abuser
 {% endif %}
 {% if frontend.reqadd|default(false) %}
-# Headers
+
+  # Headers
 {% for reqadd in frontend.reqadd %}
-  reqadd                     {{ reqadd }}
+  reqadd                      {{ reqadd }}
 {% endfor %}
-{% endif %}
+{% endif %}{# if frontend.reqadd|default(false) -#}
 
 {% if frontend.acls|default(false) %}
   # ACLs
@@ -75,31 +77,39 @@ frontend {{ frontend.name }}
 {% endfor %}
 {% endif %}
 {% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
-# Blocking related ACLs
+
+  # Blocking related ACLs
 {% if frontend.block_user_agent|default(false) %}
   acl abuser hdr_reg(User-Agent) -i -f /etc/haproxy/{{ frontend.name }}-ua-abuser.lst
 {% endif %}
 {% if frontend.block_ip_address|default(false) %}
   acl abuser src -f /etc/haproxy/{{ frontend.name }}-ip-abuser.lst
 {% endif %}
-{% endif %}
-
+{% endif %}{# if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) -#}
 {% if frontend.use_backend|default(false) %}
+
   # Backend Routing
 {% for use_backend in frontend.use_backend %}
   use_backend                 {{ use_backend }}
 {% endfor %}
-{% endif %}
+{% endif %}{# if frontend.use_backend|default(false) #}
+{% if frontend.default_backend|default(false) %}
 
   # Default backend
   default_backend             {{ frontend.default_backend }}
+{% endif %}{# if frontend.default_backend|default(false) #}
+{% if frontend.other_directives|default(false) %}
 
+  # Other directives
 {% for directive in frontend.other_directives|default([]) %}
   {{ directive }}
 {% endfor %}
+{% endif %}
 {% endfor %}
 
+# HAPROXY BACKENDS
 {% for backend in haproxy_backends %}
+# Back End: {{ backend.name }}
 backend {{ backend.name }}
 {% if backend.redirect_ssl|default(false) %}
   redirect                    scheme https if !{ ssl_fc }
@@ -114,17 +124,35 @@ backend {{ backend.name }}
 {% if backend.timeout_server|default(false) %}
   timeout server              {{ backend.timeout_server }}
 {% endif %}
+{% for header in backend.headers|default([]) %}
+  http-request set-header     {{ header }}
+{% endfor %}
+{% for directive in backend.other_directives|default([]) %}
+  {{ directive }}
+{% endfor %}
+
 {% if backend.groups|default(false) %}
-  # Servers
+  # Servers (dynamically determined)
 {% for group in backend.groups %}
-{% for server in group.servers %}
+{% for host in groups[group.group] %}
 {% if group.check_cookie|default(false) %}
-  server                      {{ server|hash('sha1') }} {{ server }}:{{ group.port }} check cookie {{ server|hash('sha1') }}
+  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }} check cookie {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }}
 {% else %}
-  server                      {{ server|hash('sha1') }} {{ server }}:{{ group.port }}
+  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }}
 {% endif %}
 {% endfor %}
 {% endfor %}
+{% endif %}{# if backend.groups|default(false) -#}
+
+{% if backend.manual_servers|default(false) %}
+  # Servers (explicitly defined)
+{% for server in backend.manual_servers.servers %}
+{% if backend.manual_servers.check_cookie|default(false) %}
+  server                      {{ server|hash('sha1') }} {{ server }}:{{ backend.manual_servers.port }} check cookie {{ server|hash('sha1') }}
+{% else %}
+  server                      {{ server|hash('sha1') }} {{ server }}:{{ backend.manual_servers.port }}
 {% endif %}
+{% endfor %}
+{% endif %}{#if backend.manual_servers|default(false) #}
 
 {% endfor %}
