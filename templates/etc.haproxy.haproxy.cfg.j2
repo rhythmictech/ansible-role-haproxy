@@ -64,6 +64,13 @@ frontend {{ frontend.name }}
 {% endif %}
 {% if frontend.reqadd|default(false) %}
 
+{% if frontend.block_rules|default(false) %}
+# Block Rules
+{% for rule in frontend.block_rules %}
+  block if {% rule %}
+{% endfor %}
+{% endif %}
+
   # Headers
 {% for reqadd in frontend.reqadd %}
   reqadd                      {{ reqadd }}
