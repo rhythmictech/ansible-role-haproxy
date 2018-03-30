@@ -62,14 +62,15 @@ frontend {{ frontend.name }}
 {% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
   tcp-request content reject if abuser
 {% endif %}
-{% if frontend.reqadd|default(false) %}
-
 {% if frontend.block_rules|default(false) %}
+
 # Block Rules
 {% for rule in frontend.block_rules %}
-  block if {% rule %}
+  block if {{ rule }}
 {% endfor %}
 {% endif %}
+
+{% if frontend.reqadd|default(false) %}
 
   # Headers
 {% for reqadd in frontend.reqadd %}
