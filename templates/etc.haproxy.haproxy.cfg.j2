@@ -54,7 +54,7 @@ frontend {{ frontend.name }}
 {% if frontend.log|default(false) %}
 	log                        {{ frontend.log }}
 {% endif %}
-{% if frontend.log|default(false) %}
+{% if frontend.options|default(false) %}
 {% for option in frontend.options %}
   option {{ option }}
 {% endfor %}
