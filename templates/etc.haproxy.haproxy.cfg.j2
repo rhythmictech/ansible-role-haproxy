@@ -54,6 +54,11 @@ frontend {{ frontend.name }}
 {% if frontend.log|default(false) %}
 	log                        {{ frontend.log }}
 {% endif %}
+{% if frontend.log|default(false) %}
+{% for option in frontend.options %}
+  option {{ option }}
+{% endfor %}
+{% endif %}
 
   # Timeouts
 {% if frontend.timeout_client_fin|default(false) %}
@@ -94,7 +99,7 @@ frontend {{ frontend.name }}
 
 # Block Rules
 {% for rule in frontend.block_rules %}
-  block if {{ rule }}
+  {{ rule }}
 {% endfor %}
 {% endif %}
 {% if frontend.use_backend|default(false) %}
