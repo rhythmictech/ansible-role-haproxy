@@ -1,3 +1,7 @@
+v0.0.6
+---------------------------
+Fixed "check" command when cookie validation isn't enabled
+
 v0.0.5
 ---------------------------
 Added support for back-end mode
