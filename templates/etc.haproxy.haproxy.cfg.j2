@@ -118,7 +118,10 @@ backend {{ backend.name }}
 {% if backend.cookie|default(false) %}
   cookie                      {{ backend.cookie }}
 {% endif %}
-{% if backend.timeout_tunnel|default(false) %}
+{{% if backend.mode|default(false) %}
+  mode                        {{ backend.mode }}
+{% endif %}
+% if backend.timeout_tunnel|default(false) %}
   timeout tunnel              {{ backend.timeout_tunnel }}
 {% endif %}
 {% if backend.timeout_server|default(false) %}
