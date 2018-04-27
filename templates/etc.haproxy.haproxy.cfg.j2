@@ -18,6 +18,10 @@ global
     ssl-default-bind-ciphers        ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
     ssl-default-bind-options        no-sslv3 no-tlsv10 no-tlsv11
 {% endif %}
+{% if haproxy_enable_reallystrict_tls|default(False) %}
+    ssl-default-bind-options no-sslv3 no-tlsv10 no-tls-tickets
+    ssl-default-bind-ciphers EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+{% endif %}
 
     tune.ssl.default-dh-param       4096
 
@@ -67,9 +71,6 @@ frontend {{ frontend.name }}
 {% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
   tcp-request inspect-delay 1s
 {% endif %}
-{% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
-  tcp-request content reject if abuser
-{% endif %}
 
 {% if frontend.reqadd|default(false) %}
 
@@ -90,6 +91,7 @@ frontend {{ frontend.name }}
   # Blocking related ACLs
 {% if frontend.block_user_agent|default(false) %}
   acl abuser hdr_reg(User-Agent) -i -f /etc/haproxy/{{ frontend.name }}-ua-abuser.lst
+
 {% endif %}
 {% if frontend.block_ip_address|default(false) %}
   acl abuser src -f /etc/haproxy/{{ frontend.name }}-ip-abuser.lst
@@ -102,6 +104,10 @@ frontend {{ frontend.name }}
   {{ rule }}
 {% endfor %}
 {% endif %}
+{% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
+  tcp-request content reject if abuser
+{% endif %}
+
 {% if frontend.use_backend|default(false) %}
 
   # Backend Routing

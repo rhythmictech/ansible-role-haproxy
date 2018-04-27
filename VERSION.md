@@ -1,3 +1,11 @@
+v0.0.8
+---------------------------
+Added more stringent SSL settings
+
+v0.0.7
+---------------------------
+Fixed ACL enforcement issue
+
 v0.0.6
 ---------------------------
 Fixed "check" command when cookie validation isn't enabled
