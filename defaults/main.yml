@@ -10,5 +10,6 @@ haproxy_packages:
 
 haproxy_listen_port: 80
 
-haproxy_enable_strict_tls: False
+# One of low, med, or high
+haproxy_tls_level: 'low'
 haproxy_ssl_certs: []

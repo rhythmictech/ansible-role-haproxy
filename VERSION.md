@@ -1,3 +1,12 @@
+v0.0.9
+---------------------------
+Reconfigure SSL settings to use one of low,med,high, defaulting to low.
+This release removed the following vars:
+  - haproxy_enable_strict_tls
+  - haproxy_enable_reallystrict_tls
+This release added the following var:
+  - haproxy_tls_level
+
 v0.0.8
 ---------------------------
 Added more stringent SSL settings
