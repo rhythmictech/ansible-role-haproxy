@@ -157,7 +157,7 @@ backend {{ backend.name }}
 {% if group.check_cookie|default(false) %}
   server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }} check cookie {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }}
 {% else %}
-  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }}
+  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }} check
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -169,7 +169,7 @@ backend {{ backend.name }}
 {% if backend.manual_servers.check_cookie|default(false) %}
   server                      {{ server|hash('sha1') }} {{ server }}:{{ backend.manual_servers.port }} check cookie {{ server|hash('sha1') }}
 {% else %}
-  server                      {{ server|hash('sha1') }} {{ server }}:{{ backend.manual_servers.port }}
+  server                      {{ server|hash('sha1') }} {{ server }}:{{ backend.manual_servers.port }} check
 {% endif %}
 {% endfor %}
 {% endif %}{#if backend.manual_servers|default(false) #}
