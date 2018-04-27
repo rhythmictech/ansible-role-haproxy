@@ -51,6 +51,14 @@ frontend {{ frontend.name }}
 {% if frontend.mode|default(false) %}
   mode                       {{ frontend.mode }}
 {% endif %}
+{% if frontend.log|default(false) %}
+	log                        {{ frontend.log }}
+{% endif %}
+{% if frontend.options|default(false) %}
+{% for option in frontend.options %}
+  option {{ option }}
+{% endfor %}
+{% endif %}
 
   # Timeouts
 {% if frontend.timeout_client_fin|default(false) %}
@@ -62,6 +70,7 @@ frontend {{ frontend.name }}
 {% if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) %}
   tcp-request content reject if abuser
 {% endif %}
+
 {% if frontend.reqadd|default(false) %}
 
   # Headers
@@ -86,6 +95,13 @@ frontend {{ frontend.name }}
   acl abuser src -f /etc/haproxy/{{ frontend.name }}-ip-abuser.lst
 {% endif %}
 {% endif %}{# if frontend.block_user_agent|default(false) or frontend.block_ip_address|default(false) -#}
+{% if frontend.block_rules|default(false) %}
+
+# Block Rules
+{% for rule in frontend.block_rules %}
+  {{ rule }}
+{% endfor %}
+{% endif %}
 {% if frontend.use_backend|default(false) %}
 
   # Backend Routing
