@@ -134,7 +134,7 @@ backend {{ backend.name }}
 {% if backend.cookie|default(false) %}
   cookie                      {{ backend.cookie }}
 {% endif %}
-{{% if backend.mode|default(false) %}
+{% if backend.mode|default(false) %}
   mode                        {{ backend.mode }}
 {% endif %}
 % if backend.timeout_tunnel|default(false) %}
