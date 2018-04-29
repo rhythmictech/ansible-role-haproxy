@@ -1,3 +1,8 @@
+v0.0.10
+---------------------------
+Add rsyslog support. Because rsyslog does not listen on UDP By default, at the moment this will set the listener
+and then redirect logs to /var/log/haproxy. In the future, we may want to make the listener be optional.
+
 v0.0.9
 ---------------------------
 Reconfigure SSL settings to use one of low,med,high, defaulting to low.

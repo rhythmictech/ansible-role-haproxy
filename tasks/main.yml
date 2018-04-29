@@ -42,6 +42,25 @@
   notify: restart haproxy
   tags: ['haproxy']
 
+- name: ensure the haproxy rsyslog config is in place
+  template:
+    src: etc.rsyslog.d.49-haproxy.conf.j2
+    dest: /etc/rsyslog.d/49-haproxy.conf
+    owner: root
+    group: root
+    mode: 0640
+  when: haproxy_enable_syslog
+  tags: ['haproxy']
+
+- name: create haproxy syslog directory
+  file:
+    dest: /var/log/haproxy
+    owner: root
+    group: root
+    mode: 0750
+  when: haproxy_enable_syslog
+  tags: ['haproxy']
+
 - name: ensure user agent block files are in place
   template:
     src: etc.haproxy.ua-abuser.lst.j2
