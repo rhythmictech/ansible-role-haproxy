@@ -1,3 +1,8 @@
+v0.0.11
+---------------------------
+Made the medium cipher set more strict than the low cipher set. Previously, they were
+the same.
+
 v0.0.10
 ---------------------------
 Add rsyslog support. Because rsyslog does not listen on UDP By default, at the moment this will set the listener
