@@ -64,14 +64,13 @@
   notify: restart rsyslog-haproxy
   tags: ['haproxy']
 
-- name: ensure the haproxy config is in place
+- name: ensure the logrotate config is in place
   template:
     src: etc.logrotate.haproxy.cfg.j2
     dest: /etc/logrotate.d/haproxy
     owner: root
     group: root
     mode: 0640
-  #notify: restart haproxy
   tags: ['haproxy']
 
 - name: ensure user agent block files are in place
