@@ -10,8 +10,21 @@ haproxy_packages:
 
 haproxy_listen_port: 80
 
-# One of low, med, or high
-haproxy_tls_level: 'low'
+
+# TLS levels derived from https://medium.com/@davetempleton/tls-configuration-cipher-suites-and-protocols-a01ee7005778
+# low is super-compatible but enables weaker ciphers to support IE8/XP. Should be avoided, particularly with SNI
+# med is conservative, widely compatible, and secure. meets BOD18-01
+# high is very secure and compatible with anything modern. should be used whenever possible
+# veryhigh prefers 256 bit ciphers and hashes, but will have a performance penalty for little security benefit
+#
+# the levels just set default cipher / ssl lists
+# specific cipher / ssl lists can be provided using the following undefined vars:
+#
+# haproxy_ciphers
+# haproxy_ssllist
+#
+haproxy_tls_level: 'med'
+
 haproxy_ssl_certs: []
 
 # Configure rsyslog udp logging and redirect logs to /var/log/haproxy
