@@ -13,16 +13,22 @@ global
     # turn on stats unix socket
     stats                           socket /var/lib/haproxy/stats
 
-{% if haproxy_tls_level == 'low' %}
-    ssl-default-bind-ciphers        ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
-    ssl-default-bind-options        no-sslv3
-{% elif haproxy_tls_level == 'med' %}
-    ssl-default-bind-ciphers        ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
-    ssl-default-bind-options        no-sslv3 no-tlsv10 no-tlsv11
+{% if haproxy_tls_level == 'veryhigh' %}
+{% set haproxy_default_ciphers == "EECDH+AESGCM:@STRENGTH:!AES128" %}
+{% set haproxy_default_ssllist = "no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets" %}
 {% elif haproxy_tls_level == 'high' %}
-    ssl-default-bind-options no-sslv3 no-tlsv10 no-tls-tickets
-    ssl-default-bind-ciphers EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+{% set haproxy_default_cipher == "EECDH+AES:@STRENGTH:+AES256" %}
+{% set haproxy_default_ssllist = "no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets" %}
+{% elif haproxy_tls_level == 'med' %}
+{% set haproxy_default_cipher == "EECDH+AES:@STRENGTH:+AES256" %}
+{% set haproxy_default_ssllist = "no-sslv3 no-tlsv10" %}
+{% elif haproxy_tls_level == 'low' %}
+{% set haproxy_default_cipher == "EECDH+AES:DHE+AES:@STRENGTH:+AES256:kRSA+3DES" %}
+{% set haproxy_default_ssllist = "no-sslv3" %}
 {% endif %}
+
+    ssl-default-bind-ciphers        {{ haproxy_ciphers | default(haproxy_default_ciphers) }}
+    ssl-default-bind-options        {{ haproxy_ssllist | default(haproxy_default_ssllist) }}
 
     tune.ssl.default-dh-param       4096
 

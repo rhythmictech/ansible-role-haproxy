@@ -1,3 +1,14 @@
+
+v0.1.0
+---------------------------
+Added a veryhigh tls level
+Updated medium cipher lists to remove weak ciphers
+Refactored all cipher lists to use a more modern, dynamic string per https://medium.com/@davetempleton/tls-configuration-cipher-suites-and-protocols-a01ee7005778
+Added support for two vars to override the cipher list or tls protocols regardless of the tls level
+  - haproxy_ciphers
+  - haproxy_ssllist
+Update rsyslog configuration file to remove the stop verb in favor of the ~ action for wider compatibility
+
 v0.0.11
 ---------------------------
 Made the medium cipher set more strict than the low cipher set. Previously, they were
