@@ -14,7 +14,7 @@ global
     stats                           socket /var/lib/haproxy/stats
 
 {% if haproxy_tls_level == 'veryhigh' %}
-{% set haproxy_default_ciphers == "EECDH+AESGCM:@STRENGTH:!AES128" %}
+{% set haproxy_default_ciphers == "ECDHE+AES:+AES256:@STRENGTH" %}
 {% set haproxy_default_ssllist = "no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets" %}
 {% elif haproxy_tls_level == 'high' %}
 {% set haproxy_default_cipher == "EECDH+AES:@STRENGTH:+AES256" %}

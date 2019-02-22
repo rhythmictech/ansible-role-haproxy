@@ -15,7 +15,7 @@ haproxy_listen_port: 80
 # low is super-compatible but enables weaker ciphers to support IE8/XP. Should be avoided, particularly with SNI
 # med is conservative, widely compatible, and secure. meets BOD18-01
 # high is very secure and compatible with anything modern. should be used whenever possible
-# veryhigh is insane and likely unnecessary
+# veryhigh prefers 256 bit ciphers and hashes, but will have a performance penalty for little security benefit
 #
 # the levels just set default cipher / ssl lists
 # specific cipher / ssl lists can be provided using the following undefined vars:
