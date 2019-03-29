@@ -1,5 +1,4 @@
 ---
-
 - name: create haproxy group
   group:
     name: haproxy
@@ -18,8 +17,7 @@
   tags: ['haproxy']
 
 - name: ensure the haproxy packages are installed
-  yum: name="{{ item }}" state=present
-  with_items: "{{ haproxy_packages | default([]) }}"
+  yum: name="{{ haproxy_packages | default([]) }}" state=present
   tags: ['haproxy']
 
 - name: ensure ssl certificates are in place
@@ -81,7 +79,7 @@
     group: root
     mode: 0640
   notify: reload haproxy
-  when: "{{ item.block_user_agent|default(false) }}"
+  when: item.block_user_agent|default(false)
   with_items: "{{ haproxy_frontends }}"
   tags: ['haproxy']
 
@@ -93,7 +91,7 @@
     group: root
     mode: 0640
   notify: reload haproxy
-  when: "{{ item.block_ip_address|default(false) }}"
+  when: item.block_ip_address|default(false)
   with_items: "{{ haproxy_frontends }}"
   tags: ['haproxy']
 
