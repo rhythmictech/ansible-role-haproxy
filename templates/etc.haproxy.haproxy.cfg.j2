@@ -59,6 +59,9 @@ defaults
 # Front End: {{ frontend.name }}
 frontend {{ frontend.name }}
   bind                       {{ frontend.bind }}
+{% if frontend.redirect_ssl|default(false) %}
+  redirect                    scheme https if !{ ssl_fc }
+{% endif %}
 {% if frontend.mode|default(false) %}
   mode                       {{ frontend.mode }}
 {% endif %}
