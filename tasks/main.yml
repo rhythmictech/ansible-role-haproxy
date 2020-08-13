@@ -1,21 +1,4 @@
 ---
-- name: create haproxy group
-  group:
-    name: haproxy
-    state: 'present'
-  tags: ['haproxy']
-
-- name: create haproxy user
-  user:
-    name: haproxy
-    state: 'present'
-    group: haproxy
-  tags: ['haproxy']
-
-- name: ensure haproxy socket dir exists
-  file: dest=/var/lib/haproxy owner=haproxy group=haproxy mode=0750 state=directory
-  tags: ['haproxy']
-
 - name: ensure the haproxy packages are installed
   yum: name="{{ haproxy_packages | default([]) }}" state=present
   tags: ['haproxy']
@@ -40,35 +23,15 @@
   notify: restart haproxy
   tags: ['haproxy']
 
-
-- name: create haproxy syslog directory
-  file:
-    dest: /var/log/haproxy
-    owner: root
-    group: root
-    mode: 0750
-    state: directory
-  when: haproxy_enable_syslog
-  tags: ['haproxy']
-
 - name: ensure the haproxy rsyslog config is in place
   template:
-    src: etc.rsyslog.d.49-haproxy.conf.j2
+    src: "EL{{ ansible_distribution_major_version}}.etc.rsyslog.d.49-haproxy.conf.j2"
     dest: /etc/rsyslog.d/49-haproxy.conf
     owner: root
     group: root
     mode: 0640
   when: haproxy_enable_syslog
   notify: restart rsyslog-haproxy
-  tags: ['haproxy']
-
-- name: ensure the logrotate config is in place
-  template:
-    src: etc.logrotate.haproxy.cfg.j2
-    dest: /etc/logrotate.d/haproxy
-    owner: root
-    group: root
-    mode: 0640
   tags: ['haproxy']
 
 - name: ensure user agent block files are in place
