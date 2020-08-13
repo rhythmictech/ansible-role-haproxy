@@ -29,4 +29,6 @@ haproxy_ssl_certs: []
 
 # Configure rsyslog udp logging and redirect logs to /var/log/haproxy
 haproxy_enable_syslog: false
-
+haproxy_use_graylog_json_logging: false
+haproxy_graylog_server:
+haproxy_graylog_server_port:

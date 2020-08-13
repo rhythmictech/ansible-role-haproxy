@@ -2,11 +2,15 @@
 $ModLoad imudp
 $UDPServerAddress 127.0.0.1
 $UDPServerRun 514
-
 $template HAProxy,"%syslogtag%%msg:::drop-last-lf%\n"
 $template TraditionalFormatWithPRI,"%pri-text%: %timegenerated% %syslogtag%%msg:::drop-last-lf%\n"
-
+{% if haproxy_use_graylog_json_logging %}
+$template GRAYLOGRFC5424,"<%PRI%>%PROTOCOL-VERSION% %TIMESTAMP:::date-rfc3339% %HOSTNAME% %APP-NAME% %PROCID% %MSGID% %STRUCTURED-DATA% %msg%\$
+local2.=info -/var/log/haproxy/access.log;HAProxy
+local2.=info @{{ haproxy_graylog_server|trim }}:{{ haproxy_graylog_server_port }};GRAYLOGRFC5424 ~
+{% else %}
 local2.=info     /var/log/haproxy/access.log;HAProxy ~
+{% endif %}
 local2.=notice;local2.=warning    /var/log/haproxy/status.log;TraditionalFormatWithPRI ~
 local2.error    /var/log/haproxy/error.log;TraditionalFormatWithPRI ~
 local2.* ~
