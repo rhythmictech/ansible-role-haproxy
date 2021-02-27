@@ -174,9 +174,9 @@ backend {{ backend.name }}
 {% for group in backend.groups %}
 {% for host in groups[group.group] %}
 {% if group.check_cookie|default(false) %}
-  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }} check cookie {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }}
+  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_nodename'] }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }} check cookie {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ group.server_options | default([]) | join(" ") }}
 {% else %}
-  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address']|hash('sha1') }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }} check
+  server                      {{ hostvars[groups[group.group][loop.index0]]['ansible_nodename'] }} {{ hostvars[groups[group.group][loop.index0]]['ansible_eth0']['ipv4']['address'] }}:{{ group.port }} check {{ group.server_options | default([]) | join(" ") }}
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -186,9 +186,9 @@ backend {{ backend.name }}
   # Servers (explicitly defined)
 {% for server in backend.manual_servers.servers %}
 {% if backend.manual_servers.check_cookie|default(false) %}
-  server                      {{ server|hash('sha1') }} {{ server }}:{{ backend.manual_servers.port }} check cookie {{ server|hash('sha1') }}
+  server                      {{ server }} {{ server }}:{{ backend.manual_servers.port }} check cookie {{ server|hash('sha1') }} {{ backend.manual_servers.server_options | default([])  | join(" ") }}
 {% else %}
-  server                      {{ server|hash('sha1') }} {{ server }}:{{ backend.manual_servers.port }} check
+  server                      {{ server }} {{ server }}:{{ backend.manual_servers.port }} check {{ backend.manual_servers.server_options | default([]) | join(" ") }}
 {% endif %}
 {% endfor %}
 {% endif %}{#if backend.manual_servers|default(false) #}
