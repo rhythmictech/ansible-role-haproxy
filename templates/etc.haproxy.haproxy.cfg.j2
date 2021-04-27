@@ -11,7 +11,7 @@ global
     daemon
 
     # turn on stats unix socket
-    stats                           socket /var/lib/haproxy/stats
+    stats                           socket /var/lib/haproxy/stats {{ haproxy_socket_options }}
 
 {% if haproxy_tls_level == 'veryhigh' %}
 {% set haproxy_default_ciphers = "ECDHE+AES:@STRENGTH" %}
@@ -40,8 +40,9 @@ defaults
     log                     global
 {% if haproxy_use_graylog_json_logging %}
     log-format               {"haproxy_clientIP":"%ci","haproxy_clientPort":"%cp","haproxy_dateTime":"%t","haproxy_frontendNameTransport":"%ft","haproxy_backend":"%b","haproxy_serverName":"%s","haproxy_Tw":"%Tw","haproxy_Tc":"%Tc","haproxy_Tt":"%Tt","haproxy_bytesRead":"%B","haproxy_terminationState":"%ts","haproxy_actconn":%ac,"haproxy_FrontendCurrentConn":%fc,"haproxy_backendCurrentConn":%bc,"haproxy_serverConcurrentConn":%sc,"haproxy_retries":%rc,"haproxy_srvQueue":%sq,"haproxy_backendQueue":%bq,"haproxy_backendSourceIP":"%bi","haproxy_backendSourcePort":"%bp","haproxy_statusCode":"%ST","haproxy_serverIP":"%si","haproxy_serverPort":"%sp","haproxy_frontendIP":"%fi","haproxy_frontendPort":"%fp","haproxy_capturedRequestHeaders":"%hr","haproxy_httpRequest":"%r"}
-{% endif %}
+{% else %}
     option                  httplog
+{% endif %}
     option                  dontlognull
     option http-server-close
     option forwardfor       except 127.0.0.0/8

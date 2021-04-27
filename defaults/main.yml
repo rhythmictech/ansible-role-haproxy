@@ -10,6 +10,8 @@ haproxy_packages:
 
 haproxy_listen_port: 80
 
+haproxy_socket_options:
+
 
 # TLS levels derived from https://medium.com/@davetempleton/tls-configuration-cipher-suites-and-protocols-a01ee7005778
 # low is super-compatible but enables weaker ciphers to support IE8/XP. Should be avoided, particularly with SNI

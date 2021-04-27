@@ -5,7 +5,7 @@ $UDPServerRun 514
 
 $template HAProxy,"%TIMESTAMP% %syslogseverity-text:::UPPERCASE%: %msg:::drop-last-lf%\n"
 $template HAProxyAccess,"%msg%\n"
-$template GRAYLOGRFC5424,"<%PRI%>%PROTOCOL-VERSION% %TIMESTAMP:::date-rfc3339% %HOSTNAME% %APP-NAME% %PROCID% %MSGID% %STRUCTURED-DATA% %msg%\$
+$template GRAYLOGRFC5424,"<%PRI%>%PROTOCOL-VERSION% %TIMESTAMP:::date-rfc3339% %HOSTNAME% %APP-NAME% %PROCID% %MSGID% %STRUCTURED-DATA% %msg%\$"
 
 if $programname startswith 'haproxy' then {
   if $syslogseverity == 6 then
