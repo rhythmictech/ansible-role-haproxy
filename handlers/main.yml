@@ -10,4 +10,5 @@
   service: name=rsyslog state=restarted
 
 - name: reload systemd
-  command: /bin/systemctl daemon-reload
+  systemd:
+    daemon_reload: yes
