@@ -10,8 +10,8 @@ $template GRAYLOGRFC5424,"<%PRI%>%PROTOCOL-VERSION% %TIMESTAMP:::date-rfc3339% %
 if $programname startswith 'haproxy' then {
   if $syslogseverity == 6 then
       action(type="omfile" file="/var/log/haproxy/access.log" template="HAProxyAccess")
-{% if haproxy_use_graylog_json_logging %}
-      action(type="omfwd" target="{{ haproxy_graylog_server|trim }}" port="{{ haproxy_graylog_server_port }}" protocol="udp" template="GRAYLOGRFC5424")
+{% if haproxy_use_json_logging %}
+      action(type="omfwd" target="{{ haproxy_log_forward_server | trim }}" port="{{ haproxy_log_forward_server_port }}" protocol="udp" template="GRAYLOGRFC5424")
 {% endif %}
       stop
   if $syslogseverity <= 3 then

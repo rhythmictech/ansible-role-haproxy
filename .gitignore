@@ -1,0 +1,7 @@
+.claude/
+*.retry
+*.pyc
+__pycache__/
+.vagrant/
+*.log
+.DS_Store

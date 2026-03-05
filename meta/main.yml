@@ -5,10 +5,13 @@ galaxy_info:
   description: Ansible Role for HAProxy
   company: Rhythmic Technologies, Inc.
   license: Proprietary
-  min_ansible_version: 2.0
+  min_ansible_version: "2.10"
   platforms:
-    - name: CentOS
+    - name: Amazon
       versions:
-        - "6"
-        - "7"
+        - "2023"
+    - name: EL
+      versions:
+        - "9"
+        - "10"
 dependencies: []
