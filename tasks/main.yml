@@ -1,98 +1,69 @@
 ---
-- name: ensure the haproxy packages are installed
-  yum: name="{{ haproxy_packages | default([]) }}" state=present
+- name: Ensure the haproxy packages are installed
+  ansible.builtin.dnf:
+    name: "{{ haproxy_packages | default([]) }}"
+    state: present
   tags: ['haproxy']
 
-- name: ensure ssl certificates are in place
-  copy:
+- name: Ensure ssl certificates are in place
+  ansible.builtin.copy:
     content: "{{ item.cert }}\n{{ item.key }}\n{{ item.chain }}"
     dest: "/etc/pki/tls/private/{{ item.name }}.pem"
     owner: root
     group: root
-    mode: 0640
-  with_items: "{{ haproxy_ssl_certs }}"
+    mode: "0640"
+  loop: "{{ haproxy_ssl_certs }}"
   tags: ['haproxy', 'certificates']
 
-- name: ensure the haproxy config is in place
-  template:
+- name: Ensure the haproxy config is in place
+  ansible.builtin.template:
     src: etc.haproxy.haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
   notify: restart haproxy
   tags: ['haproxy']
 
-- name: ensure the haproxy rsyslog config is in place
-  template:
-    src: "EL{{ ansible_distribution_major_version}}.etc.rsyslog.d.49-haproxy.conf.j2"
+- name: Ensure the haproxy rsyslog config is in place
+  ansible.builtin.template:
+    src: etc.rsyslog.d.49-haproxy.conf.j2
     dest: /etc/rsyslog.d/49-haproxy.conf
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
   when: haproxy_enable_syslog
   notify: restart rsyslog-haproxy
   tags: ['haproxy']
 
-- name: ensure user agent block files are in place
-  template:
+- name: Ensure user agent block files are in place
+  ansible.builtin.template:
     src: etc.haproxy.ua-abuser.lst.j2
     dest: /etc/haproxy/{{ item.name }}-ua-abuser.lst
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
   notify: reload haproxy
-  when: item.block_user_agent|default(false)
-  with_items: "{{ haproxy_frontends }}"
+  when: item.block_user_agent | default(false)
+  loop: "{{ haproxy_frontends }}"
   tags: ['haproxy']
 
-- name: ensure ip address block files are in place
-  template:
+- name: Ensure ip address block files are in place
+  ansible.builtin.template:
     src: etc.haproxy.ip-abuser.lst.j2
     dest: /etc/haproxy/{{ item.name }}-ip-abuser.lst
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
   notify: reload haproxy
-  when: item.block_ip_address|default(false)
-  with_items: "{{ haproxy_frontends }}"
+  when: item.block_ip_address | default(false)
+  loop: "{{ haproxy_frontends }}"
   tags: ['haproxy']
 
-- name: ensure haproxy is running and enabled
-  service: name=haproxy state=started enabled=true
-  tags: ['haproxy']
-
-- name: unpack haproxy_exporter
-  unarchive:
-    src: "{{ haproxy_exporter_download_url }}"
-    dest: /usr/local/bin
-    mode: 0755
-    owner: root
-    group: root
-    remote_src: yes
-    extra_opts:
-      - '--strip-components=1'
-      - '*/haproxy_exporter'
-    creates: /usr/local/bin/haproxy_exporter
-  when: haproxy_external_exporter_enabled
-  tags: ['haproxy']
- 
-- name: place haproxy_exporter unit file
-  template:
-    src: etc.systemd.system.haproxy_exporter.service.j2
-    dest: /etc/systemd/system/haproxy_exporter.service
-    owner: root
-    group: root
-    mode: 0644
-  notify: reload systemd
-  when: haproxy_external_exporter_enabled
-  tags: ['haproxy']
-
-- name: enable haproxy_exporter service
-  service:
-    name: haproxy_exporter
-    enabled: true
+- name: Ensure haproxy is running and enabled
+  ansible.builtin.service:
+    name: haproxy
     state: started
-  when: haproxy_external_exporter_enabled
+    enabled: true
   tags: ['haproxy']
-  
+

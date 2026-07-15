@@ -12,7 +12,6 @@ haproxy_listen_port: 80
 
 haproxy_socket_options:
 
-
 # TLS levels derived from https://medium.com/@davetempleton/tls-configuration-cipher-suites-and-protocols-a01ee7005778
 # low is super-compatible but enables weaker ciphers to support IE8/XP. Should be avoided, particularly with SNI
 # med is conservative, widely compatible, and secure. meets BOD18-01
@@ -23,6 +22,7 @@ haproxy_socket_options:
 # specific cipher / ssl lists can be provided using the following undefined vars:
 #
 # haproxy_ciphers
+# haproxy_ciphersuites (TLSv1.3)
 # haproxy_ssllist
 #
 haproxy_tls_level: 'med'
@@ -31,14 +31,10 @@ haproxy_ssl_certs: []
 
 # Configure rsyslog udp logging and redirect logs to /var/log/haproxy
 haproxy_enable_syslog: false
-haproxy_use_graylog_json_logging: false
-haproxy_graylog_server:
-haproxy_graylog_server_port:
+haproxy_use_json_logging: false
+haproxy_log_forward_server:
+haproxy_log_forward_server_port:
 
-# Prometheus exporter support for haproxy v1.8
-haproxy_external_exporter_enabled: false
-haproxy_exporter_download_url: https://github.com/prometheus/haproxy_exporter/releases/download/v0.12.0/haproxy_exporter-0.12.0.linux-amd64.tar.gz
-haproxy_exporter_listen_port: 9101
-haproxy_exporter_stats_user: admin
-haproxy_exporter_stats_password: password
-haproxy_exporter_scrape_uri: "http://{{ haproxy_exporter_stats_user }}:{{ haproxy_exporter_stats_password }}@localhost:1936/haproxy?stats;csv"
+# Native Prometheus exporter (haproxy 2.x+)
+haproxy_prometheus_enabled: false
+haproxy_prometheus_port: 8405
