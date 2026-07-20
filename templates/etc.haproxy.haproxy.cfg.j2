@@ -9,10 +9,13 @@ global
     user                            haproxy
     group                           haproxy
     daemon
+{% if haproxy_stats_sockets %}
 
     # turn on stats unix socket
-    stats                           socket /var/lib/haproxy/stats {{ haproxy_socket_options }}
-
+{% for socket in haproxy_stats_sockets %}
+    stats                           socket {{ socket.path }} {{ socket.options }}
+{% endfor %}
+{% endif %}
 {% if haproxy_tls_level == 'veryhigh' %}
 {% set haproxy_default_ciphers = "ECDHE+AES:@STRENGTH" %}
 {% set haproxy_default_ciphersuites = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256" %}
@@ -34,11 +37,15 @@ global
     ssl-default-bind-ciphers        {{ haproxy_ciphers | default(haproxy_default_ciphers) }}
     ssl-default-bind-ciphersuites   {{ haproxy_ciphersuites | default(haproxy_default_ciphersuites) }}
     ssl-default-bind-options        {{ haproxy_ssllist | default(haproxy_default_ssllist) }}
-
     tune.ssl.default-dh-param       4096
-
     # this should try to let sessions cache around a day for PFS purposes
     tune.ssl.cachesize              20000
+{% if haproxy_global_directives_other %}
+
+{% for directive in haproxy_global_directives_other %}
+    {{ directive }}
+{% endfor %}
+{% endif %}
 
 defaults
     mode                    http
@@ -61,8 +68,8 @@ defaults
     timeout http-keep-alive 10s
     timeout check           10s
     maxconn                 3000
-
 {% if haproxy_prometheus_enabled %}
+
 # PROMETHEUS METRICS
 frontend prometheus
   bind *:{{ haproxy_prometheus_port }}
@@ -73,8 +80,6 @@ frontend prometheus
 
 # HAPROXY FRONTENDS
 {% for frontend in haproxy_frontends %}
-
-# Front End: {{ frontend.name }}
 frontend {{ frontend.name }}
 {% if frontend.bindings is defined and (frontend.bindings|length) > 0 %}
 {% for binding in frontend.bindings %}
@@ -97,15 +102,12 @@ frontend {{ frontend.name }}
   option {{ option }}
 {% endfor %}
 {% endif %}
-
-  # Timeouts
 {% if frontend.timeout_client_fin | default(false) %}
   timeout client-fin         {{ frontend.timeout_client_fin }}
 {% endif %}
 {% if frontend.block_user_agent | default(false) or frontend.block_ip_address | default(false) %}
   tcp-request inspect-delay 1s
 {% endif %}
-
 {% if frontend.http_request_rules | default(false) %}
 
   # HTTP Request Rules
@@ -113,8 +115,8 @@ frontend {{ frontend.name }}
   http-request {{ rule }}
 {% endfor %}
 {% endif %}
-
 {% if frontend.acls | default(false) %}
+
   # ACLs
 {% for acl in frontend.acls %}
   acl                         {{ acl.name }} {{ acl.policy }}
@@ -125,7 +127,6 @@ frontend {{ frontend.name }}
   # Blocking related ACLs
 {% if frontend.block_user_agent | default(false) %}
   acl abuser hdr_reg(User-Agent) -i -f /etc/haproxy/{{ frontend.name }}-ua-abuser.lst
-
 {% endif %}
 {% if frontend.block_ip_address | default(false) %}
   acl abuser src -f /etc/haproxy/{{ frontend.name }}-ip-abuser.lst
@@ -141,7 +142,6 @@ frontend {{ frontend.name }}
 {% if frontend.block_user_agent | default(false) or frontend.block_ip_address | default(false) %}
   tcp-request content reject if abuser
 {% endif %}
-
 {% if frontend.use_backend | default(false) %}
 
   # Backend Routing
@@ -161,11 +161,11 @@ frontend {{ frontend.name }}
   {{ directive }}
 {% endfor %}
 {% endif %}
+
 {% endfor %}
 
 # HAPROXY BACKENDS
 {% for backend in haproxy_backends %}
-# Back End: {{ backend.name }}
 backend {{ backend.name }}
 {% if backend.redirect_ssl | default(false) %}
   redirect                    scheme https if !{ ssl_fc }
@@ -189,8 +189,8 @@ backend {{ backend.name }}
 {% for directive in backend.other_directives | default([]) %}
   {{ directive }}
 {% endfor %}
-
 {% if backend.groups | default(false) %}
+
   # Servers (dynamically determined)
 {% for group in backend.groups %}
 {% for host in groups[group.group] %}
@@ -202,8 +202,8 @@ backend {{ backend.name }}
 {% endfor %}
 {% endfor %}
 {% endif %}
-
 {% if backend.manual_servers | default(false) %}
+
   # Servers (explicitly defined)
 {% for server in backend.manual_servers.servers %}
 {% if backend.manual_servers.check_cookie | default(false) %}

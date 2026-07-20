@@ -8,9 +8,14 @@ haproxy_timeout_server: "1m"
 haproxy_packages:
   - haproxy
 
+haproxy_global_directives_other: []
+
 haproxy_listen_port: 80
 
 haproxy_socket_options:
+haproxy_stats_sockets:
+  - path: /var/lib/haproxy/stats
+    options: "{{ haproxy_socket_options }}"
 
 # TLS levels derived from https://medium.com/@davetempleton/tls-configuration-cipher-suites-and-protocols-a01ee7005778
 # low is super-compatible but enables weaker ciphers to support IE8/XP. Should be avoided, particularly with SNI
