@@ -57,17 +57,19 @@ defaults
 {% endif %}
     option                  dontlognull
     option http-server-close
-    option forwardfor       except 127.0.0.0/8
+{% if haproxy_default_forwardfor %}
+    option forwardfor       {{ haproxy_default_forwardfor_params }}
+{% endif %}
     option                  redispatch
-    retries                 3
-    timeout http-request    10s
-    timeout queue           1m
-    timeout connect         10s
-    timeout client          {{ haproxy_timeout_client }}
-    timeout server          {{ haproxy_timeout_server }}
-    timeout http-keep-alive 10s
-    timeout check           10s
-    maxconn                 3000
+    retries                 {{ haproxy_default_retries }}
+    timeout http-request    {{ haproxy_default_timeout_http_request }}
+    timeout queue           {{ haproxy_default_timeout_queue }}
+    timeout connect         {{ haproxy_default_timeout_connect }}
+    timeout client          {{ haproxy_default_timeout_client }}
+    timeout server          {{ haproxy_default_timeout_server }}
+    timeout http-keep-alive {{ haproxy_default_timeout_http_keep_alive }}
+    timeout check           {{ haproxy_default_timeout_check }}
+    maxconn                 {{ haproxy_default_maxconn }}
 {% if haproxy_prometheus_enabled %}
 
 # PROMETHEUS METRICS

@@ -1,18 +1,21 @@
 ---
-
-haproxy_maxconns: 500
-
-haproxy_timeout_client: "1m"
-haproxy_timeout_server: "1m"
-
 haproxy_packages:
   - haproxy
 
+haproxy_ssl_certs: []
+
+# Configure rsyslog udp logging and redirect logs to /var/log/haproxy
+haproxy_enable_syslog: false
+haproxy_use_json_logging: false
+haproxy_log_forward_server:
+haproxy_log_forward_server_port:
+
+## GLOBAL SETTINGS
+# Global maximum connections
+haproxy_maxconns: 500
 haproxy_global_directives_other: []
-
-haproxy_listen_port: 80
-
-haproxy_socket_options:
+# Legacy option; use `haproxy_stats_sockets` list instead
+haproxy_socket_options: ""
 haproxy_stats_sockets:
   - path: /var/lib/haproxy/stats
     options: "{{ haproxy_socket_options }}"
@@ -32,13 +35,26 @@ haproxy_stats_sockets:
 #
 haproxy_tls_level: 'med'
 
-haproxy_ssl_certs: []
+## DEFAULT PROXY SETTINGS
+# Default max connection setting for proxies; do not exceed global maxconns
+haproxy_default_maxconn: "{{ haproxy_maxconns }}"
 
-# Configure rsyslog udp logging and redirect logs to /var/log/haproxy
-haproxy_enable_syslog: false
-haproxy_use_json_logging: false
-haproxy_log_forward_server:
-haproxy_log_forward_server_port:
+haproxy_default_forwardfor: true
+haproxy_default_forwardfor_params: "except 127.0.0.0/8"
+
+# Default timeout settings for proxies
+haproxy_default_retries: 3
+haproxy_default_timeout_http_request: 10s
+haproxy_default_timeout_queue: 1m
+haproxy_default_timeout_connect: 10s
+haproxy_default_timeout_client: "{{ haproxy_timeout_client }}"
+haproxy_default_timeout_server: "{{ haproxy_timeout_server }}"
+haproxy_default_timeout_http_keep_alive: 10s
+haproxy_default_timeout_check: 10s
+
+# Legacy parameters; use `haproxy_default_timeout-*` instead
+haproxy_timeout_client: "1m"
+haproxy_timeout_server: "1m"
 
 # Native Prometheus exporter (haproxy 2.x+)
 haproxy_prometheus_enabled: false
